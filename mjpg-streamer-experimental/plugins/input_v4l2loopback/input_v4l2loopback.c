@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <errno.h>
 
 #include "../../mjpg_streamer.h"
 #include "../../utils.h"
@@ -139,19 +140,6 @@ int input_init(input_parameter *param, int id)
         return 1;
     }
 
-    struct v4l2_format fmt = {0};
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width = 1920;
-    fmt.fmt.pix.height = 1080;
-
-    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
-    fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    fmt.fmt.pix.colorspace = V4L2_COLORSPACE_JPEG;
-
-    if (xioctl(v4l2_device_fd, VIDIOC_S_FMT, &fmt) == -1) {
-        perror("Error setting v4l2_format using VIDIOC_S_FMT\n");
-        return 1;
-    }
 
     // Calculate out the frames per second to use
 
@@ -207,16 +195,14 @@ int input_run(int id)
 /*** private functions for this plugin below ***/
 void help(void)
 {
-    // fprintf(stderr, " ---------------------------------------------------------------\n" \
-    // " Help for input plugin..: "INPUT_PLUGIN_NAME"\n" \
-    // " ---------------------------------------------------------------\n" \
-    // " The following parameters can be passed to this plugin:\n\n" \
-    // " [-d | --delay ]........: delay (in seconds) to pause between frames\n" \
-    // " [-f | --folder ].......: folder to watch for new JPEG files\n" \
-    // " [-r | --remove ].......: remove/delete JPEG file after reading\n" \
-    // " [-n | --name ].........: ignore changes unless filename matches\n" \
-    // " [-e | --existing ].....: serve the existing *.jpg files from the specified directory\n" \
-    // " ---------------------------------------------------------------\n");
+    fprintf(stderr, " ---------------------------------------------------------------\n" \
+    " Help for input plugin..: "INPUT_PLUGIN_NAME"\n" \
+    " ---------------------------------------------------------------\n" \
+    " The following parameters can be passed to this plugin:\n\n" \
+    " [-d | --device ]........: v4l2loopback dummy device (i.e. /dev/video2). Find with 'v4l2-ctl --list-devices | grep -A1 v4l2loopback | tail -1 | cut -f2' \n" \
+    " [-f | --fps ].......: frames per second (i.e. '10') or framerate (i.e. '15/2' = 7.5fps)\n" \
+    " [-h | --help ]........: this screen\n" \
+    " ---------------------------------------------------------------\n");
 }
 
 // Entrypoint for the thread that reads from v4l2loopback device
@@ -424,7 +410,3 @@ int xioctl(int fd, int request, void *arg)
 
   return r;
 }
-
-
-
-
